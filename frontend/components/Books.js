@@ -16,16 +16,51 @@ export default function Books() {
   }, [])
 
   const fetchBooks = () => {
-
+      fetch("/api/books")
+      .then(res=>{
+        if(!res.ok)
+        {
+          throw new Error ("There is the network Error")
+        }
+        const contentType = res.headers.get("Content-Type")
+        if(contentType.includes("application/json"))
+        {
+          return res.json()
+        }
+      })
+      .then(data=>{
+        setBooks(data)
+      })
+      .catch(err=>
+        console.log("There is an Error",err)
+      )
   }
 
   const deleteBook = id => {
-
+      fetch(`/api/books/${id}`,{method:"DELETE"})
+      .then(()=>fetchBooks())
+      .catch(err=>console.log(err))
   }
 
   const onSubmit = (event) => {
     event.preventDefault()
+    const url = bookForm.id 
+    ? `/api/books/${bookForm.id}`
+    :`/api/books`
 
+    fetch(url,{
+      method:bookForm.id? "PUT" : "POST",
+      body:JSON.stringify(bookForm),
+      headers:new Headers({
+        "Content-Type" :"application/json",
+        "Bunny" : "full=stack-web",
+      })
+    })
+    .then(()=>{
+      fetchBooks()
+      setBookForm(initialForm)
+    })
+    .catch(err=>console.log("There is error: ",err))
   }
 
   const onChange = (event) => {
